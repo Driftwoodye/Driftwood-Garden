@@ -16,12 +16,15 @@ bulbs, and a wishlist. Data is loaded client-side from CSV files
 - Common name DE
 - Common name PT
 - Status
-- Original geographical provenance
-- Source / acquired
+- Source
 - Current location
 - Wikipedia
 
-The following fields do **not** exist in `plants.csv` (they were removed and must not be re-added or referenced in `index.html` for the `plants` type): Difficulty rating, Future location, Plant form, Pot size, Light, Water, Soil / substrate, Notes.
+The `Source` column merges the former `Original geographical provenance` and
+`Source / acquired` columns into a single free-text field (their values
+combined, separated by `; `). It is labelled "Origin / source" in the modal.
+
+The following fields do **not** exist in `plants.csv` (they were removed and must not be re-added or referenced in `index.html` for the `plants` type): Difficulty rating, Future location, Plant form, Pot size, Light, Water, Soil / substrate, Notes, Original geographical provenance, Source / acquired (as separate columns — see `Source` above).
 
 Other CSVs (`wishlist.csv`, `seeds.csv`, `bulbs.csv`) still have their own versions of some of these fields (e.g. wishlist's `Light needs`, `Water needs`, `Soil / substrate`) — those are unrelated and should stay as-is.
 
