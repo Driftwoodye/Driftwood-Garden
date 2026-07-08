@@ -16,10 +16,21 @@ bulbs, and a wishlist. Data is loaded client-side from CSV files
 - Common name DE
 - Common name PT
 - Status
-- Original geographical provenance
-- Source / acquired
+- Origin
+- Source
 - Current location
 - Wikipedia
+
+`Origin` and `Source` are distinct fields and must never be merged into a
+single column:
+
+- **Origin** — the native geographical range of the species (e.g. "Southern
+  Africa (Kalahari and Namib regions)" for *Vachellia erioloba*).
+- **Source** — how and where Miguel actually acquired the plant or seeds
+  (e.g. "Wild-collected seeds, Sossusvlei, Namibia, January 2023;
+  germinated December 2025"). This may reference the same region as Origin
+  when the specimen was wild-collected, but it is recording the acquisition
+  event, not the species' native range.
 
 The following fields do **not** exist in `plants.csv` (they were removed and must not be re-added or referenced in `index.html` for the `plants` type): Difficulty rating, Future location, Plant form, Pot size, Light, Water, Soil / substrate, Notes.
 
