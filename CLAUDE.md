@@ -1,20 +1,20 @@
 # Driftwood Garden
 
 A single-file static catalogue app (`index.html`) for tracking plants, seeds,
-bulbs, and a wishlist. Data is loaded client-side from CSV files
+bulbs, and a wishlist. `index.html` has no build step or server-side code.
+It tries the Google Sheet first (each tab's public gviz CSV export, routed
+through the `corsproxy.io` CORS proxy since `docs.google.com` doesn't send
+CORS headers) and falls back to the local CSV files
 (`plants.csv`, `seeds.csv`, `seeds-extra.csv`, `bulbs.csv`, `wishlist.csv`,
-`images.csv`); `index.html` itself has no build step or server-side code and
-never fetches Google Sheets directly (no CORS-safe way to do that from a
-static page).
+`images.csv`) if that fetch fails or returns nothing — see `sheetCSV()` /
+`loadSource()` in `index.html`. `corsproxy.io` is a third-party dependency;
+if it becomes unreliable, the local-CSV fallback keeps the site working.
 
-The CSVs' source of truth is a Google Sheet (one tab per file: Plants, Seeds,
-Bulbs, Wishlist, Images). `.github/workflows/sync-google-sheet.yml` runs
-`scripts/sync-sheet.mjs` on a schedule (and via `workflow_dispatch` /
-`repository_dispatch`) to pull each tab through the public gviz CSV export
-(`/gviz/tq?tqx=out:csv&sheet=`) and commit the resulting CSVs back to the
-repo. Do not reintroduce a live
-Google Sheets fetch (gviz, `/export?format=csv`, a CORS proxy, etc.) into
-`index.html` — edit the sheet and let the sync workflow update the CSVs.
+The CSVs are also kept in sync independently: `.github/workflows/sync-google-sheet.yml`
+runs `scripts/sync-sheet.mjs` on a schedule (and via `workflow_dispatch` /
+`repository_dispatch`) to pull each tab through the same public gviz CSV
+export (server-side, so no CORS proxy needed there) and commit the
+resulting CSVs back to the repo.
 
 ## plants.csv columns
 
