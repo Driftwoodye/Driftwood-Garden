@@ -1,8 +1,13 @@
 name: Sync Google Sheet to CSVs
 
 on:
-  schedule:
-    - cron: '*/15 * * * *'
+  # Schedule disabled: the sheet's tabs don't currently match the CSVs'
+  # columns/row counts, so syncing overwrote good data with far less of
+  # it (see commit 5413540). Re-enable the cron schedule below only
+  # after confirming each tab is fully populated and its header row
+  # matches maps.* in index.html.
+  # schedule:
+  #   - cron: '*/15 * * * *'
   workflow_dispatch: {}
   repository_dispatch:
     types: [sheet-updated]
