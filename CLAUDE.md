@@ -3,7 +3,17 @@
 A single-file static catalogue app (`index.html`) for tracking plants, seeds,
 bulbs, and a wishlist. Data is loaded client-side from CSV files
 (`plants.csv`, `seeds.csv`, `seeds-extra.csv`, `bulbs.csv`, `wishlist.csv`,
-`images.csv`); there is no build step or server-side code.
+`images.csv`); `index.html` itself has no build step or server-side code and
+never fetches Google Sheets directly (no CORS-safe way to do that from a
+static page).
+
+The CSVs' source of truth is a Google Sheet (one tab per file: Plants, Seeds,
+Bulbs, Wishlist, Images). `.github/workflows/sync-google-sheet.yml` runs
+`scripts/sync-sheet.mjs` on a schedule (and via `workflow_dispatch` /
+`repository_dispatch`) to pull each tab through the Google Sheets API and
+commit the resulting CSVs back to the repo. Do not reintroduce a live
+Google Sheets fetch (gviz, `/export?format=csv`, a CORS proxy, etc.) into
+`index.html` — edit the sheet and let the sync workflow update the CSVs.
 
 ## plants.csv columns
 

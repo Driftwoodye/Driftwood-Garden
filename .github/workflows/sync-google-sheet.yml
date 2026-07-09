@@ -1,0 +1,38 @@
+name: Sync Google Sheet to CSVs
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+  repository_dispatch:
+    types: [sheet-updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch sheet tabs and write CSVs
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: node scripts/sync-sheet.mjs
+
+      - name: Commit and push if CSVs changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- plants.csv seeds.csv bulbs.csv wishlist.csv images.csv; then
+            echo "No changes to commit"
+          else
+            git add plants.csv seeds.csv bulbs.csv wishlist.csv images.csv
+            git commit -m "Sync CSVs from Google Sheet"
+            git push
+          fi
