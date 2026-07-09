@@ -11,7 +11,7 @@
 body{margin:0;background:radial-gradient(circle at top left,#15382e 0,var(--bg) 42%,#030712 100%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 header{position:sticky;top:0;z-index:5;background:rgba(7,16,29,.96);border-bottom:1px solid var(--line)}
 .wrap,main{max-width:1280px;margin:auto;padding:10px}
-h1{margin:0 0 8px;color:var(--green);font-size:24px}
+h1{margin:0 0 8px;color:var(--green);font-size:24px}h1 a{color:inherit;text-decoration:none}
 .tabs,.controls{display:flex;gap:6px;flex-wrap:wrap}
 .legend{display:none;margin:7px 0;color:#cbd5e1;font-size:12px;background:rgba(15,23,42,.75);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
 button,input,select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:13px}
@@ -25,7 +25,7 @@ input{min-width:min(330px,100%)}.grid{display:grid;grid-template-columns:repeat(
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>Driftwood Garden</h1><div class="tabs"><button id="plantsBtn" class="tab active">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div id="legend" class="legend"></div><div class="controls"><input id="search" type="search" placeholder="Search..."><select id="priority"></select><select id="filterFamily"><option value="all">All families</option></select><select id="filterA"><option value="all">All locations</option></select><select id="filterB"><option value="all">All statuses</option></select></div></div></header>
+<header><div class="wrap"><h1><a href="/Driftwood-Garden/">Driftwood Garden</a></h1><div class="tabs"><button id="plantsBtn" class="tab active">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div id="legend" class="legend"></div><div class="controls"><input id="search" type="search" placeholder="Search..."><select id="priority"></select><select id="filterFamily"><option value="all">All families</option></select><select id="filterA"><option value="all">All locations</option></select><select id="filterB"><option value="all">All statuses</option></select></div></div></header>
 <main><div id="grid" class="grid"><div class="empty">Loading catalogue...</div></div></main>
 <button id="toTop" class="to-top" aria-label="Back to top">↑</button>
 <dialog id="dlg"><div class="modal-head"><div><div id="badges"></div><div id="title" class="name"></div><div id="common" class="common"></div></div><button id="closeBtn">Close</button></div><div id="modal" class="modal-body"></div></dialog>
@@ -92,7 +92,7 @@ function openImage(src){$('imgFull').src=src;$('imgDlg').showModal()}
 let currentModalKey='';
 function renderModal(x){const imgs=imagesFor(x);$('title').textContent=x.name;$('common').innerHTML=commonHtml(x);$('badges').innerHTML='<span class="badge family">'+esc(x.family||'—')+'</span> '+(x.type==='plants'?'':'<span class="badge rating">'+esc(x.rating||'—')+'</span>');const fields=[];if(imgs.length)fields.push(['Images',galleryHtml(imgs),true]);else fields.push(['Images','<span style="color:var(--muted)">'+(commonsNoResult.has(lookupNameFor(x))?'No botanical illustration found automatically.':'Looking up a botanical illustration on Wikimedia Commons…')+'</span>',true]);Object.entries(x).forEach(([k,v])=>{if(['type','key','stars','name','common','commonDe','commonPt'].includes(k)||(x.type==='plants'&&k==='rating')||!clean(v))return;let val=esc(v);if(/^https?:\/\//.test(clean(v)))val='<a href="'+esc(v)+'" target="_blank" rel="noopener noreferrer">'+esc(v)+'</a>';const label=mode==='plants'?(fieldLabels[k]||maps[mode][k]||k):(maps[mode][k]||fieldLabels[k]||k);fields.push([label,val,['notes','origin','source'].includes(k)])});$('modal').innerHTML=fields.map(([label,v,full])=>'<div class="field '+(full?'full':'')+'"><div class="field-title">'+esc(label)+'</div><div class="field-value">'+v+'</div></div>').join('')}
 function openItem(key){const x=byKey.get(key);if(!x)return;currentModalKey=key;renderModal(x);$('dlg').showModal();if(!imagesFor(x).length){const lname=lookupNameFor(x);getCommonsImage(lname).then(img=>{if(img){addImage(x.key,img);addImage(lname,img)}if(currentModalKey===key&&$('dlg').open)renderModal(x)})}}
-function setMode(next){mode=next;['wishlist','plants','seeds','bulbs'].forEach(m=>$(m+'Btn').classList.toggle('active',mode===m));$('search').value='';fillFilters();$('priority').value='all';$('filterFamily').value='all';$('filterA').value='all';$('filterB').value='all';render()}
+function setMode(next){mode=next;['wishlist','plants','seeds','bulbs'].forEach(m=>$(m+'Btn').classList.toggle('active',mode===m));$('search').value='';fillFilters();$('priority').value='all';$('filterFamily').value='all';$('filterA').value='all';$('filterB').value='all';render();scrollTo({top:0,behavior:'smooth'})}
 // NFC / URL parameter support — tap an NFC tag to open a plant directly
 // Tag URL format: https://driftwoodye.github.io/Driftwood-Garden/?plant=Euphorbia+milii
 // Or by ID:       https://driftwoodye.github.io/Driftwood-Garden/?id=SBC-PLANT-0002
