@@ -3,11 +3,11 @@
 A single-file static catalogue app (`index.html`) for tracking plants, seeds,
 bulbs, and a wishlist. `index.html` has no build step or server-side code.
 It tries the Google Sheet first (each tab's public gviz CSV export, routed
-through the `corsproxy.io` CORS proxy since `docs.google.com` doesn't send
+through the `allorigins.win` CORS proxy since `docs.google.com` doesn't send
 CORS headers) and falls back to the local CSV files
 (`plants.csv`, `seeds.csv`, `seeds-extra.csv`, `bulbs.csv`, `wishlist.csv`,
 `images.csv`) if that fetch fails or returns nothing — see `sheetCSV()` /
-`loadSource()` in `index.html`. `corsproxy.io` is a third-party dependency;
+`loadSource()` in `index.html`. `allorigins.win` is a third-party dependency;
 if it becomes unreliable, the local-CSV fallback keeps the site working.
 
 The CSVs are also kept in sync independently: `.github/workflows/sync-google-sheet.yml`
