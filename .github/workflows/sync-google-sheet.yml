@@ -21,8 +21,6 @@ jobs:
           node-version: 20
 
       - name: Fetch sheet tabs and write CSVs
-        env:
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: node scripts/sync-sheet.mjs
 
       - name: Commit and push if CSVs changed

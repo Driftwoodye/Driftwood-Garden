@@ -10,8 +10,9 @@ static page).
 The CSVs' source of truth is a Google Sheet (one tab per file: Plants, Seeds,
 Bulbs, Wishlist, Images). `.github/workflows/sync-google-sheet.yml` runs
 `scripts/sync-sheet.mjs` on a schedule (and via `workflow_dispatch` /
-`repository_dispatch`) to pull each tab through the Google Sheets API and
-commit the resulting CSVs back to the repo. Do not reintroduce a live
+`repository_dispatch`) to pull each tab through the public gviz CSV export
+(`/gviz/tq?tqx=out:csv&sheet=`) and commit the resulting CSVs back to the
+repo. Do not reintroduce a live
 Google Sheets fetch (gviz, `/export?format=csv`, a CORS proxy, etc.) into
 `index.html` — edit the sheet and let the sync workflow update the CSVs.
 
