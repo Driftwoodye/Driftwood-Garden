@@ -16,6 +16,25 @@ and commit the resulting CSVs back to the repo. Do not reintroduce a live
 Google Sheets fetch (gviz, `/export?format=csv`, a CORS proxy, etc.) into
 `index.html` — edit the sheet and let the sync workflow update the CSVs.
 
+## Auto-matched images (`commons-cache.json`)
+
+Records without a manual entry in `images.csv` get an auto-matched
+historic illustration from Wikimedia Commons (with a Biodiversity
+Heritage Library fallback), scored to prefer engravings/plates over
+modern photos — see `HISTORIC_TERMS`/`MODERN_TERMS`/`scoreCommonsPage` in
+`index.html`. The match for each scientific name is pre-computed by
+`scripts/build-commons-cache.mjs` and written to `commons-cache.json`
+(committed to the repo), which `index.html` loads at startup and checks
+before ever querying Commons live — this keeps the chosen image
+consistent for every visitor instead of each browser re-running the
+search and potentially landing on a different result.
+`.github/workflows/build-commons-cache.yml` runs the script weekly (and
+via `workflow_dispatch`) and commits the file if it changed. The script
+only fetches names not already present in the cache (pass `--force` to
+refetch everything) and never records a network error as a "no match" —
+only a genuinely empty search result is cached that way — so a bad
+run doesn't permanently poison an entry.
+
 ## plants.csv columns
 
 `plants.csv` has these columns only:
