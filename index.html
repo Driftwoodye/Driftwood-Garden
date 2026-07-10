@@ -68,8 +68,9 @@ function imgTag(src,full,alt,cls=''){return '<img '+(cls?'class="'+esc(cls)+'" '
 const COMMONS_TTL=30*24*60*60*1000,COMMONS_MAX_CONCURRENT=4,commonsCache=new Map(),commonsNoResult=new Set(),commonsQueue=[];let commonsInFlight=0;
 const HISTORIC_TERMS=['engraving','lithograph','plate','botanical magazine','bot. mag','curtis','köhler','koehler','redouté','redoute','flora danica','hortus eystettensis','icones','monograph','tab.','bhl','biodiversity heritage','addisonia','watercolour','watercolor','illustration','drawing','print','woodcut','copperplate','manuscript','historical','antique','vintage','herbarium'],MODERN_TERMS=['img_','dsc_','photograph','photo by'];
 function stripHtml(s){return clean(s).replace(/<[^>]*>/g,'').trim()}
-function commonsStoreGet(name){try{const raw=localStorage.getItem('commonsImg:'+name);if(!raw)return undefined;const o=JSON.parse(raw);if(Date.now()-o.ts>COMMONS_TTL)return undefined;return o.img}catch(e){return undefined}}
-function commonsStoreSet(name,img){try{localStorage.setItem('commonsImg:'+name,JSON.stringify({ts:Date.now(),img}))}catch(e){}}
+const COMMONS_STORE_PREFIX='commonsImg:v2:';
+function commonsStoreGet(name){try{const raw=localStorage.getItem(COMMONS_STORE_PREFIX+name);if(!raw)return undefined;const o=JSON.parse(raw);if(Date.now()-o.ts>COMMONS_TTL)return undefined;return o.img}catch(e){return undefined}}
+function commonsStoreSet(name,img){try{localStorage.setItem(COMMONS_STORE_PREFIX+name,JSON.stringify({ts:Date.now(),img}))}catch(e){}}
 const WORD_BOUNDARY_TERMS=['plate','print'];
 function termHits(hay,t){return WORD_BOUNDARY_TERMS.includes(t)?new RegExp('\\b'+t+'\\b').test(hay):hay.includes(t)}
 function scoreCommonsPage(title,meta){const cats=(meta.Categories&&meta.Categories.value)||'',desc=(meta.ImageDescription&&meta.ImageDescription.value)||'',obj=(meta.ObjectName&&meta.ObjectName.value)||'',hay=(title+' '+cats+' '+desc+' '+obj).toLowerCase();let score=0;HISTORIC_TERMS.forEach(t=>{if(termHits(hay,t))score+=10});MODERN_TERMS.forEach(t=>{if(termHits(hay,t))score-=8});const dateStr=(meta.DateTimeOriginal&&meta.DateTimeOriginal.value)||(meta.DateTime&&meta.DateTime.value)||'',ym=dateStr.match(/(1[4-9]\d{2}|20[0-2]\d)/);if(ym){const y=+ym[0];if(y<1900)score+=20;else if(y<1950)score+=10;else if(y<1980)score+=3}return score}
