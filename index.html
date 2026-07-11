@@ -13,7 +13,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(7,16,29,.96);border-botto
 .wrap,main{max-width:1280px;margin:auto;padding:10px}
 h1{margin:0 0 8px;color:var(--green);font-size:24px}h1 a{color:inherit;text-decoration:none}
 .tabs,.controls{display:flex;gap:6px;flex-wrap:wrap}
-.legend{display:none;margin:2px 2px 8px;color:var(--muted);font-size:11px}
+.priority-wrap{display:flex;flex-direction:column;gap:3px}
+.legend{display:none;margin:0 2px;color:var(--muted);font-size:11px}
 button,input,select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:13px}
 button{cursor:pointer}.tab.active{color:var(--green);border-color:var(--green);background:rgba(6,78,59,.32)}
 input{min-width:min(330px,100%)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;padding-bottom:60px}
@@ -25,7 +26,7 @@ input{min-width:min(330px,100%)}.grid{display:grid;grid-template-columns:repeat(
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1><a href="/Driftwood-Garden/">Driftwood Garden</a></h1><div class="tabs"><button id="plantsBtn" class="tab active">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div id="legend" class="legend"></div><div class="controls"><input id="search" type="search" placeholder="Search..."><select id="priority"></select><select id="filterFamily"><option value="all">All families</option></select><select id="filterA"><option value="all">All locations</option></select><select id="filterB"><option value="all">All statuses</option></select></div></div></header>
+<header><div class="wrap"><h1><a href="/Driftwood-Garden/">Driftwood Garden</a></h1><div class="tabs"><button id="plantsBtn" class="tab active">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div class="controls"><input id="search" type="search" placeholder="Search..."><div class="priority-wrap"><select id="priority"></select><div id="legend" class="legend"></div></div><select id="filterFamily"><option value="all">All families</option></select><select id="filterA"><option value="all">All locations</option></select><select id="filterB"><option value="all">All statuses</option></select></div></div></header>
 <main><div id="grid" class="grid"><div class="empty">Loading catalogue...</div></div></main>
 <button id="toTop" class="to-top" aria-label="Back to top">↑</button>
 <dialog id="dlg"><div class="modal-head"><div><div id="badges"></div><div id="title" class="name"></div><div id="common" class="common"></div></div><button id="closeBtn">Close</button></div><div id="modal" class="modal-body"></div></dialog>
