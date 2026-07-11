@@ -12,6 +12,7 @@ const TABS = {
   Bulbs: 'bulbs.csv',
   Wishlist: 'wishlist.csv',
   Images: 'images.csv',
+  Illustrations: 'illustrations.csv',
 };
 
 async function fetchTab(tab) {
