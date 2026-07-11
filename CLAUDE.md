@@ -4,8 +4,16 @@ A single-file static catalogue app (`index.html`) for tracking plants, seeds,
 bulbs, and a wishlist. `index.html` has no build step or server-side code
 and reads only from the local CSV files
 (`plants.csv`, `seeds.csv`, `seeds-extra.csv`, `bulbs.csv`, `wishlist.csv`,
-`images.csv`) — it never fetches Google Sheets directly, live in the
-browser (that path was slow and depended on a third-party CORS proxy).
+`images.csv`, `illustrations.csv`) — it never fetches Google Sheets
+directly, live in the browser (that path was slow and depended on a
+third-party CORS proxy).
+
+All images (personal photos in `images.csv`, botanical illustrations in
+`illustrations.csv`) are managed manually via the Google Sheet. There is no
+live Wikimedia Commons / BHL auto-fetch in `index.html` — that was removed.
+Do not reintroduce a `commons.wikimedia.org` or `biodiversitylibrary.org`
+API lookup into `index.html`; if a record has no manual image, the UI just
+shows a "No image yet" placeholder.
 
 The Google Sheet is the editor; the CSVs are the data source `index.html`
 reads. `.github/workflows/sync-google-sheet.yml` runs
