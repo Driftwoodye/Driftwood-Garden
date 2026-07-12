@@ -1,0 +1,70 @@
+{
+  "project": "Driftwood Garden scientific illustrations",
+  "updated_at": "2026-07-12T07:20:00Z",
+  "catalog_source": {
+    "repository": "Driftwoodye/Driftwood-Garden",
+    "files": ["plants.csv", "seeds.csv", "bulbs.csv", "wishlist.csv"]
+  },
+  "criteria": {
+    "accept": "Exact taxon, cultivar, variety or colour form; botanical/scientific illustration; legally reusable with clear rights.",
+    "reject": "Photographs, related-species substitutions, wrong colour forms, modern artwork with unclear rights."
+  },
+  "batches": [
+    {
+      "batch_id": "2026-07-12-01",
+      "status": "completed_no_acceptances",
+      "targets": [
+        {
+          "scientific_name": "Vachellia erioloba",
+          "catalog_id": "SBC-PLANT-0007",
+          "historical_synonyms_checked": ["Acacia erioloba"],
+          "accepted": false,
+          "rejections": [
+            {
+              "candidate": "General web and Wikimedia searches under Vachellia erioloba / Acacia erioloba",
+              "reason": "No exact reusable botanical plate located; results were photographs, unrelated acacias, or modern drawings with unclear rights."
+            }
+          ]
+        },
+        {
+          "scientific_name": "Brighamia insignis",
+          "catalog_id": "SBC-PLANT-0008",
+          "historical_synonyms_checked": ["Brighamia citrina", "Brighamia insignis f. citrina"],
+          "accepted": false,
+          "rejections": [
+            {
+              "candidate": "National Tropical Botanical Garden botanical illustration",
+              "source_url": "https://ntbg.org/database/plants/detail/brighamia-insignis",
+              "reason": "Exact scientific illustration, but modern image rights are not clearly reusable; page is copyright NTBG."
+            }
+          ]
+        },
+        {
+          "scientific_name": "Clusia mangle",
+          "catalog_id": "SBC-PLANT-0014",
+          "historical_synonyms_checked": [],
+          "accepted": false,
+          "rejections": [
+            {
+              "candidate": "General web, Wikimedia and botanical-plate searches",
+              "reason": "No exact legally reusable botanical illustration located."
+            }
+          ]
+        },
+        {
+          "scientific_name": "Majidea zanguebarica",
+          "catalog_id": "SBC-PLANT-0015",
+          "historical_synonyms_checked": ["Majidea zangueberica", "Harpullia zanguebarica"],
+          "accepted": false,
+          "rejections": [
+            {
+              "candidate": "General web, Wikimedia and botanical-plate searches",
+              "reason": "Searches returned photographs or taxonomic pages; no exact reusable scientific illustration located."
+            }
+          ]
+        }
+      ],
+      "accepted_files": []
+    }
+  ]
+}
