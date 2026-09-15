@@ -1,0 +1,49 @@
+name: Apply About section
+on:
+  push:
+    branches: [about-section]
+    paths: ['.github/workflows/apply-about.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: about-section
+      - name: Patch index
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          css='''.about{max-width:920px;margin:0 auto;padding:18px 4px 60px;line-height:1.65}.about h2{color:var(--green);font-size:24px;margin:4px 0 18px}.about p{margin:0 0 18px}.about-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.about-photos img,.about-final img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:14px}.about-final{margin-top:24px}.hidden{display:none!important}@media(max-width:760px){.about{padding-top:14px}.about-photos{grid-template-columns:1fr}.about h2{font-size:21px}}
+'''
+          s=s.replace('</style>',css+'</style>',1)
+          old='<div class="tabs"><button id="plantsBtn" class="tab active">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div class="controls">'
+          new='<div class="tabs"><button id="aboutBtn" class="tab active">About</button><button id="plantsBtn" class="tab">Plants</button><button id="seedsBtn" class="tab">Seeds</button><button id="bulbsBtn" class="tab">Bulbs</button><button id="wishlistBtn" class="tab">Wishlist</button></div><div class="controls hidden">'
+          assert old in s
+          s=s.replace(old,new,1)
+          oldmain='<main><div id="grid" class="grid"><div class="empty">Loading catalogue...</div></div></main>'
+          about='''<main><section id="about" class="about"><h2>About the collection</h2><p>This collection began before the sailing trip, with plants and seeds acquired over the years.</p><p>From 2023 to 2026, it travelled with me during a three-year sailing trip from Kiel, Germany, to the Caribbean. Many plants and seeds were acquired, propagated or collected along the way, and continued the journey with me.</p><div class="about-photos"><img src="48703.jpg" alt="Plants aboard during the sailing trip"><img src="24549.jpg" alt="At the helm during the sailing trip"><img src="49724.jpg" alt="Sailing in the Caribbean"></div><p>After the voyage, the collection continued to grow and is now being developed in Germany.</p><p>The catalogue records the plants, including their origins, acquisition dates and, where relevant, how they came to be here.</p><p>The catalogue was originally created as an organisational aid, but gradually became a way of documenting the history and development of the collection.</p><div class="about-final"><img src="67729.jpg" alt="The collection in its current indoor growing setup"></div></section><div id="grid" class="grid hidden"><div class="empty">Loading catalogue...</div></div></main>'''
+          assert oldmain in s
+          s=s.replace(oldmain,about,1)
+          oldset="function setMode(next){mode=next;['wishlist','plants','seeds','bulbs'].forEach(m=>$(m+'Btn').classList.toggle('active',mode===m));$('search').value='';fillFilters();$('priority').value='all';$('filterFamily').value='all';$('filterA').value='all';render();scrollTo({top:0,behavior:'smooth'})}"
+          newset="function showAbout(){['wishlist','plants','seeds','bulbs'].forEach(m=>$(m+'Btn').classList.remove('active'));$('aboutBtn').classList.add('active');document.querySelector('.controls').classList.add('hidden');$('grid').classList.add('hidden');$('about').classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})}\nfunction setMode(next){mode=next;$('aboutBtn').classList.remove('active');$('about').classList.add('hidden');$('grid').classList.remove('hidden');document.querySelector('.controls').classList.remove('hidden');['wishlist','plants','seeds','bulbs'].forEach(m=>$(m+'Btn').classList.toggle('active',mode===m));$('search').value='';fillFilters();$('priority').value='all';$('filterFamily').value='all';$('filterA').value='all';render();scrollTo({top:0,behavior:'smooth'})}"
+          assert oldset in s
+          s=s.replace(oldset,newset,1)
+          oldclick="$('wishlistBtn').onclick=()=>setMode('wishlist');$('plantsBtn').onclick=()=>setMode('plants');$('seedsBtn').onclick=()=>setMode('seeds');$('bulbsBtn').onclick=()=>setMode('bulbs');"
+          assert oldclick in s
+          s=s.replace(oldclick,"$('aboutBtn').onclick=showAbout;"+oldclick,1)
+          oldinit='fillFilters();render();handleUrlParam()'
+          assert oldinit in s
+          s=s.replace(oldinit,"fillFilters();render();if(new URLSearchParams(location.search).has('plant')||new URLSearchParams(location.search).has('id'))handleUrlParam();else showAbout()",1)
+          p.write_text(s)
+      - name: Commit About section
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Add About section' || exit 0
+          git push origin about-section
