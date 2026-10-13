@@ -111,6 +111,13 @@ function addToRows(csv, fileList, records, kind) {
       existingIds.delete(driveId(stale[index['Image URL']]));
       stale[index['Image URL']] = url;
       stale[index['Source URL']] = source;
+      // A replacement botanical illustration may have a different artist
+      // and licence; never reuse the old attribution without verification.
+      if (kind === 'illustrations') {
+        stale[index['Author']] = '';
+        stale[index['License']] = 'Attribution / licence to verify';
+        stale[index['Notes']] = 'Replacement image from Drive; attribution and reuse rights must be checked.';
+      }
       existingIds.add(file.id);
       replaced++;
       continue;
