@@ -115,6 +115,16 @@ function addToRows(csv, fileList, records, kind) {
       replaced++;
       continue;
     }
+    // Prefer the newest uploaded photograph as the card's primary photo,
+    // while retaining older photographs in the detail gallery.
+    if (kind === 'photos') {
+      for (const previous of csv.slice(1)) {
+        if (previous[index['Plant ID']] === plant.id &&
+            /photograph/i.test(previous[index['Image type']] ?? '')) {
+          previous[index['Primary']] = 'No';
+        }
+      }
+    }
     const row = Array(header.length).fill('');
     row[index['Scientific name']] = plant.name;
     row[index[plant.idField]] = plant.id;
