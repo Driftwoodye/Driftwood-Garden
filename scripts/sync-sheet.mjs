@@ -29,3 +29,7 @@ for (const [tab, file] of Object.entries(TABS)) {
   await writeFile(file, csv, 'utf8');
   console.log(`Wrote ${file} (${csv.split('\n').length} lines)`);
 }
+
+\n// The Drive add-on is optional until the private GitHub Actions secret is configured.
+const { syncDriveImages } = await import('./sync-drive-images.mjs');
+await syncDriveImages(process.env.GOOGLE_DRIVE_API_KEY);
