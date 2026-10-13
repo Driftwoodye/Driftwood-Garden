@@ -76,19 +76,19 @@ function catalog(rows, nameColumn, idColumn) {
   const [head, ...items] = rows;
   const nameIdx = col(head, nameColumn), idIdx = col(head, idColumn);
   return items.filter(r => r[idIdx] && r[nameIdx])
-    .map(r => ({ name: r[nameIdx], id: r[idIdx], base: speciesKey(r[nameIdx]) }));
+    .map(r => ({ name: r[nameIdx], id: r[idIdx], idField: idColumn, base: speciesKey(r[nameIdx]) }));
 }
 function findPlant(filename, plants) {
   const key = norm(stem(filename));
+  // Prefer an owned plant, then a seed lot, bulb or wishlist item.
   const exact = plants.filter(p => norm(p.name) === key);
-  if (exact.length === 1) return exact[0];
-  if (exact.length !== 0) return null;
+  if (exact.length) return exact[0];
   const species = plants.filter(p => p.base === key);
-  return species.length === 1 ? species[0] : null;
+  return species.length ? species[0] : null;
 }
 function addToRows(csv, fileList, records, kind) {
   const header = csv[0];
-  const index = Object.fromEntries(['Scientific name', 'Plant ID', 'Seed Lot ID', 'Wishlist ID',
+  const index = Object.fromEntries(['Scientific name', 'Plant ID', 'Bulb Lot ID', 'Seed Lot ID', 'Wishlist ID',
     'Image URL', 'Image type', 'Author', 'License', 'Source URL', 'Primary', 'Notes']
       .map(name => [name, col(header, name)]));
   const existingIds = new Set(csv.slice(1).map(r => driveId(r[index['Image URL']])).filter(Boolean));
@@ -103,7 +103,7 @@ function addToRows(csv, fileList, records, kind) {
     const source = 'https://drive.google.com/file/d/' + file.id + '/view';
     // If a file was replaced in Drive, retain the manually curated metadata.
     const stale = csv.slice(1).find(r =>
-      r[index['Plant ID']] === plant.id &&
+      r[index[plant.idField]] === plant.id &&
       (kind === 'photos' ? /photograph/i : /illustration/i).test(r[index['Image type']] ?? '') &&
       driveId(r[index['Image URL']]) && !liveIds.has(driveId(r[index['Image URL']]))
     );
@@ -117,7 +117,7 @@ function addToRows(csv, fileList, records, kind) {
     }
     const row = Array(header.length).fill('');
     row[index['Scientific name']] = plant.name;
-    row[index['Plant ID']] = plant.id;
+    row[index[plant.idField]] = plant.id;
     row[index['Image URL']] = url;
     row[index['Image type']] = srcField;
     row[index['Source URL']] = source;
@@ -142,10 +142,14 @@ export async function syncDriveImages(apiKey) {
   // Never overwrite the spreadsheet-sourced CSVs if an unexpectedly empty result arrives.
   if (!photos.length || !illustrations.length) throw new Error('Unexpected empty Drive folder scan; keeping existing CSVs unchanged.');
   const plants = catalog(await loadCsv('plants.csv'), 'Scientific name', 'Plant ID');
+  const seeds = catalog(await loadCsv('seeds.csv'), 'Scientific name', 'Seed Lot ID');
+  const wishlist = catalog(await loadCsv('wishlist.csv'), 'Scientific name', 'Wishlist ID');
+  const bulbs = catalog(await loadCsv('bulbs.csv'), 'Scientific name', 'Bulb Lot ID');
+  const illustrationTargets = [...plants, ...seeds, ...bulbs, ...wishlist];
   const imagesCsv = await loadCsv('images.csv');
   const illustrationsCsv = await loadCsv('illustrations.csv');
   const photoResult = addToRows(imagesCsv, photos, plants, 'photos');
-  const illustrationResult = addToRows(illustrationsCsv, illustrations, plants, 'illustrations');
+  const illustrationResult = addToRows(illustrationsCsv, illustrations, illustrationTargets, 'illustrations');
   if (photoResult.added || photoResult.replaced) await writeFile('images.csv', serializeCsv(imagesCsv), 'utf8');
   if (illustrationResult.added || illustrationResult.replaced) await writeFile('illustrations.csv', serializeCsv(illustrationsCsv), 'utf8');
   console.log('Drive index changes:', { photos: photoResult, illustrations: illustrationResult });
