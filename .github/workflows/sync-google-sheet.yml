@@ -1,6 +1,12 @@
 name: Sync Google Sheet to CSVs
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/sync-sheet.mjs'
+      - 'scripts/sync-drive-images.mjs'
+      - '.github/workflows/sync-google-sheet.yml'
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch: {}
@@ -19,6 +25,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Check sync scripts syntax
+        run: |
+          node --check scripts/sync-sheet.mjs
+          node --check scripts/sync-drive-images.mjs
 
       - name: Fetch sheet tabs and write CSVs
         env:
