@@ -44,7 +44,11 @@ function driveId(url) {
   const s = String(url ?? '');
   return s.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{20,})/)?.[1] ?? '';
 }
+// Public Drive folders have a read-only embedded list view. It exposes
+// file IDs and names without credentials, so no API key is needed in Actions.
+// If an API key is set, prefer the documented Drive API instead.
 async function listPublicFolder(folderId, apiKey) {
+  if (!apiKey) return listEmbeddedFolder(folderId);
   const files = []; let pageToken = '';
   do {
     const url = new URL('https://www.googleapis.com/drive/v3/files');
@@ -63,8 +67,43 @@ async function listPublicFolder(folderId, apiKey) {
     files.push(...(page.files ?? []));
     pageToken = page.nextPageToken ?? '';
   } while (pageToken);
-  return files.filter(f => f.id && IMAGE_EXT.test(f.name ?? '') && String(f.mimeType ?? '').startsWith('image/'))
+  return files.filter(f => f.id && String(f.mimeType ?? '').startsWith('image/'))
     .sort((a, b) => String(b.modifiedTime ?? '').localeCompare(String(a.modifiedTime ?? '')) || a.name.localeCompare(b.name));
+}
+function decodeHtml(s) {
+  const entities = {amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' '};
+  return s.replace(/<[^>]*>/g, '')
+    .replace(/&(#x[0-9a-f]+|#\d+|amp|quot|apos|lt|gt|nbsp);/gi, (_, entity) => {
+      if (entity[0] === '#') {
+        const code = entity[1].toLowerCase() === 'x'
+          ? parseInt(entity.slice(2), 16) : parseInt(entity.slice(1), 10);
+        return code <= 0x10ffff ? String.fromCodePoint(code) : '';
+      }
+      return entities[entity.toLowerCase()] ?? '';
+    }).trim();
+}
+async function listEmbeddedFolder(folderId) {
+  const url = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(folderId);
+  const response = await fetch(url, {
+    headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0 (compatible; DriftwoodGardenImageSync/1.0)' },
+  });
+  if (!response.ok) throw new Error('Drive public folder view failed: HTTP ' + response.status);
+  const html = await response.text();
+  // Google Drive's embedded folder view supplies each file as an anchor
+  // containing a flip-entry-title element. Ignore non-file links and folders.
+  const pattern = /<a\b[^>]*\bhref=["']https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{20,})\/view[^"']*["'][^>]*>[\s\S]*?<div\b[^>]*class=["'][^"']*\bflip-entry-title\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi;
+  const files = [];
+  const seen = new Set();
+  for (const match of html.matchAll(pattern)) {
+    const name = decodeHtml(match[2]);
+    if (!name || seen.has(match[1])) continue;
+    seen.add(match[1]);
+    files.push({ id: match[1], name });
+  }
+  if (!files.length) {
+    throw new Error('No file links found in public Drive folder ' + folderId + ' (folder view changed or sharing disabled).');
+  }
+  return files.sort((a,b) => a.name.localeCompare(b.name));
 }
 async function loadCsv(path) { return parseCsv(await readFile(path, 'utf8')); }
 function col(header, name) {
@@ -147,17 +186,13 @@ function addToRows(csv, fileList, records, kind) {
   return { added, replaced, skipped };
 }
 export async function syncDriveImages(apiKey) {
-  if (!apiKey) {
-    console.log('Drive image folder sync inactive: GOOGLE_DRIVE_API_KEY secret has not been configured.');
-    return;
-  }
   const [photos, illustrations] = await Promise.all([
     listPublicFolder(PHOTO_FOLDER_ID, apiKey),
     listPublicFolder(ILLUSTRATION_FOLDER_ID, apiKey),
   ]);
   console.log('Drive scan: ' + photos.length + ' photographs; ' + illustrations.length + ' illustrations.');
   // Never overwrite the spreadsheet-sourced CSVs if an unexpectedly empty result arrives.
-  if (!photos.length || !illustrations.length) throw new Error('Unexpected empty Drive folder scan; keeping existing CSVs unchanged.');
+  if (photos.length < 10 || illustrations.length < 30) throw new Error('Incomplete Drive folder listing; keeping existing CSVs unchanged.');
   const plants = catalog(await loadCsv('plants.csv'), 'Scientific name', 'Plant ID');
   const seeds = catalog(await loadCsv('seeds.csv'), 'Scientific name', 'Seed Lot ID');
   const wishlist = catalog(await loadCsv('wishlist.csv'), 'Scientific name', 'Wishlist ID');
