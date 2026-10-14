@@ -31,6 +31,6 @@ for (const [tab, file] of Object.entries(TABS)) {
 }
 
 
-// The Drive add-on is optional until the private GitHub Actions secret is configured.
+// The Drive image scan runs on every sync; an API key is optional.
 const { syncDriveImages } = await import('./sync-drive-images.mjs');
 await syncDriveImages(process.env.GOOGLE_DRIVE_API_KEY);
