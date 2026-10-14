@@ -1,50 +1,72 @@
-# Automatic Drive image indexing
+# Automatic Google Drive image synchronization
 
-The site's existing Google Sheets -> CSV synchronization stays in place.
-Every 15 minutes, GitHub Actions runs `scripts/sync-sheet.mjs`, which pulls
-all six catalogue tabs from the editing spreadsheet. Afterwards,
-`scripts/sync-drive-images.mjs` optionally searches the *public* image folders
-and adds new image references to the generated CSVs.
+**Active. No API key or manual CSV editing is required for new images.**
 
-## One-time activation
+The existing Google Sheet remains the editor for catalogue data. The site
+reads CSV files committed to GitHub. GitHub Actions downloads the six
+Google Sheet tabs, scans the two public Drive folders, associates new files
+with catalogued plants by their scientific name, and updates the image CSVs.
 
-1. In Google Cloud Console, enable the **Google Drive API** for a project.
-2. Under **APIs & Services > Credentials**, create an API key. Restrict it to
-   the **Google Drive API**. Do not put the key into the website or the repo.
-3. Add the key as an Actions repository secret named `GOOGLE_DRIVE_API_KEY`:
-   https://github.com/Driftwoodye/Driftwood-Garden/settings/secrets/actions
-4. Optionally start `Sync Google Sheet to CSVs` in the GitHub Actions tab
-   using **Run workflow**; otherwise the existing 15-minute schedule will do it.
+The workflow is scheduled every 15 minutes. GitHub Actions scheduled jobs
+may run later than requested, so this is **periodic automatic polling**,
+not an immediate Drive upload event.
 
-Folders used:
-- Photographs: https://drive.google.com/drive/folders/1T2w5LrEQMzS_-dVsM8mI-ksPP2ZEsSLc
-- Illustrations: `DG - illustrations` subfolder (ID `1aL2GJrV4YFHzFp99rlq7i4nOkkyHRIDA`).
+## Where to upload
 
-Both folders must stay shared for public reading (and individual pictures
-must also be readable by visitors). The images themselves stay in Google Drive;
-only URLs are indexed in the site CSVs.
+- Personal photographs: https://drive.google.com/drive/folders/1T2w5LrEQMzS_-dVsM8mI-ksPP2ZEsSLc
+- Botanical illustrations: https://drive.google.com/drive/folders/1aL2GJrV4YFHzFp99rlq7i4nOkkyHRIDA
 
-## Filename matching and safeguards
+Keep both folders and individual images publicly readable: “Anyone with
+the link — Viewer”. The site displays the images from Drive; the actual
+image files are not copied into GitHub.
 
-- Use the species' scientific name as the filename, e.g. `Operculicarya pachypus.jpg`.
-- Botanical illustrations belong in `DG - illustrations`; photographs go
-  in the parent pictures folder.
-- The indexer matches a full scientific name first, or a base species name
-  where the catalogue entry includes a cultivar.
-- For photos, only plants in `plants.csv` are candidates.
-- For illustrations, plant, seed, bulb and wishlist items can be candidates.
-- Unmatched images are **skipped and logged**, never incorrectly assigned.
-- Existing records and attribution are retained. Replaced Drive files are
-  relinked where their previous file is no longer in the public folder.
-- Existing images are never deleted. If the API key is missing, the Sheets
-  sync works as before; the Drive augmentation is skipped.
-- The site `index.html` is unchanged.
+## Filenames
 
-**Important:** entries inserted automatically into `images.csv` or
-`illustrations.csv` are part of the generated website data. They are not
-written back to the Google Sheet. The script repeats its additions after
-each Sheets sync. If you want to curate author/licence information, add
-it to the corresponding row in the **Google Sheet**, not the generated CSV.
+Use the scientific name, with spaces or underscores. For example:
 
-The current site's backup snapshot is retained in the GitHub branch
-`backup/image-sync-before-fix-2026-10-13`.
+- `Operculicarya pachypus.jpg`
+- `Operculicarya pachypus (2).jpg`
+- `Operculicarya pachypus (3).jpg`
+- `Rhododendron_indicum_'Hoki'.jpg`
+- `Chamaecyparis_obtusa_'Nana Gracilis'.jpg`
+
+A species-only filename can associate with a single owned cultivar,
+where there is no ambiguity. Unrecognised filenames are logged and
+skipped instead of being attached to the wrong plant.
+
+The plant must already be present in the catalogue; uploading an image
+does not create a plant. Photographs are matched to the Plants tab.
+Illustrations may also be associated with Seeds, Bulbs, or Wishlist.
+
+Multiple files for the same species are supported. Photos and illustrations
+are displayed in the corresponding card and in its detail gallery.
+
+## Automatic processing
+
+Workflow: https://github.com/Driftwoodye/Driftwood-Garden/actions/workflows/sync-google-sheet.yml
+
+- Every scheduled run fetches the latest Sheets data and finds Drive image
+  files automatically through the public embedded folder view.
+- The importer identifies each picture by Drive file ID, so it does not
+  create duplicates across scheduled runs.
+- It retains previously linked photographs and illustrations and updates
+  stale Drive IDs when a picture is replaced.
+- A missing or incomplete folder listing causes a workflow error, rather
+  than deleting existing site records.
+- The public folder view is an **unofficial Google interface**. If Google
+  changes it, the sync may require maintenance. An optional restricted
+  Google Drive API key can be set as the GitHub Actions secret
+  `GOOGLE_DRIVE_API_KEY` for use of Google's documented API.
+- Image metadata and author/licence fields should be curated in the
+  Images/Illustrations tabs in Google Sheets. The importer does not
+  automatically determine whether an illustration has reuse permission.
+
+## Testing and restoration
+
+On 14 October 2026 a push-triggered sync successfully discovered the three
+new illustrations (Chamaecyparis, Hibiscus, and Rhododendron), and a second
+scheduled run succeeded with no additional Git changes (repeat-run check).
+
+The core website `index.html` is unchanged. A snapshot of the original
+GitHub state is preserved at:
+https://github.com/Driftwoodye/Driftwood-Garden/tree/backup/image-sync-before-fix-2026-10-13
