@@ -6,7 +6,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 const PHOTO_FOLDER_ID = '1T2w5LrEQMzS_-dVsM8mI-ksPP2ZEsSLc';
 const ILLUSTRATION_FOLDER_ID = '1aL2GJrV4YFHzFp99rlq7i4nOkkyHRIDA';
-const IMAGE_EXT = /\.(?:jpe?g|png|webp|gif)$/i;
+const IMAGE_EXT = /\.(?:jpe?g|png|webp|gif|avif|heic|heif|tiff?|bmp|jfif|apng|svg)$/i;
 
 function parseCsv(input) {
   const rows = []; let row = [], value = '', quoted = false;
@@ -83,9 +83,9 @@ function decodeHtml(s) {
     }).trim();
 }
 async function listEmbeddedFolder(folderId) {
-  const url = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(folderId);
+  const url = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(folderId) + '&_sync=' + Date.now();
   const response = await fetch(url, {
-    headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0 (compatible; DriftwoodGardenImageSync/1.0)' },
+    headers: { Accept: 'text/html', 'Cache-Control': 'no-cache, no-store, max-age=0', Pragma: 'no-cache', 'User-Agent': 'Mozilla/5.0 (compatible; DriftwoodGardenImageSync/1.1)' },
   });
   if (!response.ok) throw new Error('Drive public folder view failed: HTTP ' + response.status);
   const html = await response.text();
@@ -190,7 +190,9 @@ export async function syncDriveImages(apiKey) {
     listPublicFolder(PHOTO_FOLDER_ID, apiKey),
     listPublicFolder(ILLUSTRATION_FOLDER_ID, apiKey),
   ]);
-  console.log('Drive scan: ' + photos.length + ' photographs; ' + illustrations.length + ' illustrations.');
+  console.log('Drive scan (cache-busted): ' + photos.length + ' photographs; ' + illustrations.length + ' illustrations.');
+  console.log('Photograph files discovered:', photos.map(f => f.name));
+  console.log('Illustration files discovered:', illustrations.map(f => f.name));
   // Never overwrite the spreadsheet-sourced CSVs if an unexpectedly empty result arrives.
   if (photos.length < 10 || illustrations.length < 30) throw new Error('Incomplete Drive folder listing; keeping existing CSVs unchanged.');
   const plants = catalog(await loadCsv('plants.csv'), 'Scientific name', 'Plant ID');
